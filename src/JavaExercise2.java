@@ -1,6 +1,7 @@
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.Scanner;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -18,17 +19,22 @@ public class JavaExercise2 {
             // powinny wykorzystać cache
             lock.readLock().lock();
             try{
-                if(cache.containsKey(x)) return cache.get(x);
+                if(cache.containsKey(x)){
+                    System.out.println(x + " is prime: " + cache.get(x));
+                    return cache.get(x);
+                }
             }finally {
                 lock.readLock().unlock();
             }
 
-            boolean outPut = computeIfIsPrime(x);
+            boolean outPut;
             lock.writeLock().lock();
+            outPut = computeIfIsPrime(x);
             try{
                 cache.put(x, outPut);
             }finally {
                 lock.writeLock().unlock();
+                System.out.println(x + " is prime: " + outPut);
                 return outPut;
             }
 
@@ -60,11 +66,49 @@ public class JavaExercise2 {
 
     public static void main(String[] args) {
         // TODO: zaimplementuj pętlę główną programu
+        final CyclicBarrier endCyclicBarrier = new CyclicBarrier(4);
+        final CyclicBarrier startCyclicBarrier = new CyclicBarrier(4);
+        final ExecutorService executorService = Executors.newFixedThreadPool(4);
+        Scanner scanner = new Scanner(System.in);
+        CachingPrimeChecker cachingPrimeChecker = new CachingPrimeChecker();
+        do{
+            String input = scanner.nextLine();
 
-        
+            String[] numsAsString = input.split(" ");
+            if (numsAsString.length < 4) {
+                System.out.println("Wprowadź co najmniej 4 liczby całkowite oddzielone spacjami.");
+                continue; // Kontynuuj pętlę, aby ponownie zapytać użytkownika o dane
+            }
+            int[] numsToCalc = new int[4];
+            try {
+                // Przekonwertuj każdy element na liczbę i umieść go w tablicy
+                for (int i = 0; i < 4; i++) {
+                    numsToCalc[i] = Integer.parseInt(numsAsString[i]);
+                }
+                for(int i = 0; i < 4; i++){
+                    final int num = numsToCalc[i];
+                    executorService.submit(()->{
+                        try {
+                            startCyclicBarrier.await();
+                        } catch (InterruptedException | BrokenBarrierException e) {
+                            throw new RuntimeException(e);
+                        }
+                        cachingPrimeChecker.isPrime(num);
+                        try {
+                            endCyclicBarrier.await();
+                        } catch (InterruptedException | BrokenBarrierException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                }
+
+            } catch (NumberFormatException e) {
+                // Obsłuż wyjątek, jeśli użytkownik wprowadził coś innego niż liczby
+                System.out.println("Wprowadź tylko liczby całkowite oddzielone spacjami.");
+            }
 
 
 
-
+        }while(true);
     }
 }
