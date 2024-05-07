@@ -76,12 +76,12 @@ public class JavaExercise2 {
 
             String[] numsAsString = input.split(" ");
             if (numsAsString.length < 4) {
-                System.out.println("Wprowadź co najmniej 4 liczby całkowite oddzielone spacjami.");
-                continue; // Kontynuuj pętlę, aby ponownie zapytać użytkownika o dane
+                System.out.println("Wprowadź 4 liczby całkowite oddzielone spacjami.");
+                continue;
             }
             int[] numsToCalc = new int[4];
             try {
-                // Przekonwertuj każdy element na liczbę i umieść go w tablicy
+
                 for (int i = 0; i < 4; i++) {
                     numsToCalc[i] = Integer.parseInt(numsAsString[i]);
                 }
@@ -103,7 +103,7 @@ public class JavaExercise2 {
                 }
 
             } catch (NumberFormatException e) {
-                // Obsłuż wyjątek, jeśli użytkownik wprowadził coś innego niż liczby
+
                 System.out.println("Wprowadź tylko liczby całkowite oddzielone spacjami.");
             }
 
